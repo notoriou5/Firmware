@@ -41,3 +41,4 @@ px4_add_module(
 		standard.cpp
 	)
 
+px4_add_functional_gtest(SRC vtol_att_control_test.cpp LINKLIBS modules__vtol_att_control)
