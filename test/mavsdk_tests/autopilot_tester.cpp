@@ -39,6 +39,7 @@ std::string connection_url {"udp://"};
 
 void AutopilotTester::connect(const std::string uri)
 {
+	std::cout << "______SITL DEBUG_____: connect ---------" << std::endl;
 	ConnectionResult ret = _mavsdk.add_any_connection(uri);
 	REQUIRE(ret == ConnectionResult::SUCCESS);
 
@@ -77,17 +78,20 @@ void AutopilotTester::wait_until_ready_local_position_only()
 
 void AutopilotTester::store_home()
 {
+	std::cout << "______SITL DEBUG_____: store_home ---------" << std::endl;
 	request_ground_truth();
 	_home = get_ground_truth_position();
 }
 
 void AutopilotTester::check_home_within(float acceptance_radius_m)
 {
+	std::cout << "______SITL DEBUG_____: check_home_within ---------" << std::endl;
 	CHECK(ground_truth_horizontal_position_close_to(_home, acceptance_radius_m));
 }
 
 void AutopilotTester::set_takeoff_altitude(const float altitude_m)
 {
+	std::cout << "______SITL DEBUG_____: set_takeoff_altitude ---------" << std::endl;
 	CHECK(Action::Result::SUCCESS == _action->set_takeoff_altitude(altitude_m));
 	const auto result = _action->get_takeoff_altitude();
 	CHECK(result.first == Action::Result::SUCCESS);
@@ -96,48 +100,56 @@ void AutopilotTester::set_takeoff_altitude(const float altitude_m)
 
 void AutopilotTester::arm()
 {
+	std::cout << "______SITL DEBUG_____: arm ---------" << std::endl;
 	const auto result = _action->arm();
 	REQUIRE(result == Action::Result::SUCCESS);
 }
 
 void AutopilotTester::takeoff()
 {
+	std::cout << "______SITL DEBUG_____: takeoff ---------" << std::endl;
 	const auto result = _action->takeoff();
 	REQUIRE(result == Action::Result::SUCCESS);
 }
 
 void AutopilotTester::land()
 {
+	std::cout << "______SITL DEBUG_____: land ---------" << std::endl;
 	const auto result = _action->land();
 	REQUIRE(result == Action::Result::SUCCESS);
 }
 
 void AutopilotTester::transition_to_fixedwing()
 {
+	std::cout << "______SITL DEBUG_____: transition_to_fixedwing ---------" << std::endl;
 	const auto result = _action->transition_to_fixedwing();
 	REQUIRE(result == Action::Result::SUCCESS);
 }
 
 void AutopilotTester::transition_to_multicopter()
 {
+	std::cout << "______SITL DEBUG_____: transition_to_multicopter ---------" << std::endl;
 	const auto result = _action->transition_to_multicopter();
 	REQUIRE(result == Action::Result::SUCCESS);
 }
 
-void AutopilotTester::wait_until_disarmed(std::chrono::seconds timeout_duration)
+void AutopilotTester::wait_until_disarmed()
 {
+	std::cout << "______SITL DEBUG_____: wait_until_disarmed ---------" << std::endl;
 	REQUIRE(poll_condition_with_timeout(
-	[this]() { return !_telemetry->armed(); }, timeout_duration));
+	[this]() { return !_telemetry->armed(); }, std::chrono::seconds(90)));
 }
 
 void AutopilotTester::wait_until_hovering()
 {
+	std::cout << "______SITL DEBUG_____: wait_until_hovering ---------" << std::endl;
 	REQUIRE(poll_condition_with_timeout(
-	[this]() { return _telemetry->landed_state() == Telemetry::LandedState::IN_AIR; }, std::chrono::seconds(20)));
+	[this]() { return _telemetry->landed_state() == Telemetry::LandedState::IN_AIR; }, std::chrono::seconds(60)));
 }
 
 void AutopilotTester::prepare_square_mission(MissionOptions mission_options)
 {
+	std::cout << "______SITL DEBUG_____: prepare_square_mission ---------" << std::endl;
 	const auto ct = get_coordinate_transformation();
 
 	std::vector<std::shared_ptr<MissionItem>> mission_items {};
@@ -159,8 +171,57 @@ void AutopilotTester::prepare_square_mission(MissionOptions mission_options)
 	REQUIRE(fut.wait_for(std::chrono::seconds(2)) == std::future_status::ready);
 }
 
+void AutopilotTester::prepare_square_vtol_mission(MissionOptions mission_options)
+{
+	std::cout << "______SITL DEBUG_____: prepare_square_vtol_mission ---------" << std::endl;
+	const auto ct = get_coordinate_transformation();
+
+	std::vector<std::shared_ptr<MissionItem>> mission_items {};
+	mission_items.push_back(create_mission_item({mission_options.leg_length_m, 0.}, mission_options, ct));
+	mission_items.push_back(create_mission_item({mission_options.leg_length_m, mission_options.leg_length_m},
+				mission_options, ct));
+	mission_items.push_back(create_mission_item({0., mission_options.leg_length_m}, mission_options, ct));
+	mission_items.push_back(create_mission_item({0., 50.0f}, mission_options, ct));
+
+
+	_mission->set_return_to_launch_after_mission(mission_options.rtl_at_end);
+
+	std::promise<void> prom;
+	auto fut = prom.get_future();
+
+	_mission->upload_mission_async(mission_items, [&prom](Mission::Result result) {
+		REQUIRE(Mission::Result::SUCCESS == result);
+		prom.set_value();
+	});
+
+	REQUIRE(fut.wait_for(std::chrono::seconds(2)) == std::future_status::ready);
+}
+
+void AutopilotTester::prepare_N_shaped_mission(MissionOptions mission_options)
+{
+	std::cout << "______SITL DEBUG_____: prepare_simple_vtol_mission ---------" << std::endl;
+	const auto ct = get_coordinate_transformation();
+
+	std::vector<std::shared_ptr<MissionItem>> mission_items {};
+	mission_items.push_back(create_mission_item({mission_options.leg_length_m, 0.f}, mission_options, ct));
+	mission_items.push_back(create_mission_item({0.f, mission_options.leg_length_m}, mission_options, ct));
+	mission_items.push_back(create_mission_item({mission_options.leg_length_m, mission_options.leg_length_m}, mission_options, ct));
+	_mission->set_return_to_launch_after_mission(mission_options.rtl_at_end);
+
+	std::promise<void> prom;
+	auto fut = prom.get_future();
+
+	_mission->upload_mission_async(mission_items, [&prom](Mission::Result result) {
+		REQUIRE(Mission::Result::SUCCESS == result);
+		prom.set_value();
+	});
+
+	REQUIRE(fut.wait_for(std::chrono::seconds(2)) == std::future_status::ready);
+}
+
 void AutopilotTester::execute_mission()
 {
+	std::cout << "______SITL DEBUG_____: execute_mission ---------" << std::endl;
 	std::promise<void> prom;
 	auto fut = prom.get_future();
 
@@ -172,7 +233,55 @@ void AutopilotTester::execute_mission()
 	// TODO: Adapt time limit based on mission size, flight speed, sim speed factor, etc.
 
 	REQUIRE(poll_condition_with_timeout(
-	[this]() { return _mission->mission_finished(); }, std::chrono::seconds(60)));
+	[this]() { return _mission->mission_finished(); }, std::chrono::seconds(180)));
+
+	REQUIRE(fut.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
+}
+
+void AutopilotTester::pause_mission()
+{
+	std::cout << "______SITL DEBUG_____: pause_mission ---------" << std::endl;
+	std::promise<void> prom;
+	auto fut = prom.get_future();
+
+
+	_mission->pause_mission_async([&prom](Mission::Result result) {
+		REQUIRE(Mission::Result::SUCCESS == result);
+		prom.set_value();
+	});
+
+	REQUIRE(fut.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
+}
+
+void AutopilotTester::set_mission_item()
+{
+	std::cout << "______SITL DEBUG_____: set_mission_item ---------" << std::endl;
+	std::promise<void> prom;
+	auto fut = prom.get_future();
+
+	_mission->set_current_mission_item_async(3, [&prom](Mission::Result result) {
+		REQUIRE(Mission::Result::SUCCESS == result);
+		prom.set_value();
+	});
+
+	REQUIRE(fut.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
+}
+
+void AutopilotTester::execute_specific_mission_item()
+{
+	std::cout << "______SITL DEBUG_____: execute_specific_mission_item ---------" << std::endl;
+	std::promise<void> prom;
+	auto fut = prom.get_future();
+
+	_mission->start_mission_async([&prom](Mission::Result result) {
+		REQUIRE(Mission::Result::SUCCESS == result);
+		prom.set_value();
+	});
+
+	// TODO: Adapt time limit based on mission size, flight speed, sim speed factor, etc.
+
+	REQUIRE(poll_condition_with_timeout(
+	[this]() { return (_mission->current_mission_item() == 2); }, std::chrono::seconds(20)));
 
 	REQUIRE(fut.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
 }
@@ -190,15 +299,18 @@ std::shared_ptr<MissionItem>  AutopilotTester::create_mission_item(
 	const MissionOptions &mission_options,
 	const CoordinateTransformation &ct)
 {
+	std::cout << "______SITL DEBUG_____: create_mission_item ---------" << std::endl;
 	auto mission_item = std::make_shared<MissionItem>();
 	const auto pos_north = ct.global_from_local(local_coordinate);
 	mission_item->set_position(pos_north.latitude_deg, pos_north.longitude_deg);
 	mission_item->set_relative_altitude(mission_options.relative_altitude_m);
+	std::cout << "mission item:" << pos_north.latitude_deg << ", "<< pos_north.longitude_deg << ", " << mission_options.relative_altitude_m << std::endl;
 	return mission_item;
 }
 
 void AutopilotTester::execute_rtl()
 {
+	std::cout << "______SITL DEBUG_____: execute_rtl ---------" << std::endl;
 	REQUIRE(Action::Result::SUCCESS == _action->return_to_launch());
 }
 

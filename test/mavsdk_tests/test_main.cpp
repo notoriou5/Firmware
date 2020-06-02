@@ -37,7 +37,7 @@
 #include <mavsdk/mavsdk.h>
 #include <iostream>
 #include <string>
-#include "autopilot_tester.h"
+#include "autopilot_tester_raw.h"
 
 
 static void usage(const std::string &bin_name);

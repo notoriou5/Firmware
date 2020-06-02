@@ -69,10 +69,15 @@ public:
 	void land();
 	void transition_to_fixedwing();
 	void transition_to_multicopter();
-	void wait_until_disarmed(std::chrono::seconds timeout_duration = std::chrono::seconds(60));
+	void wait_until_disarmed();
 	void wait_until_hovering();
 	void prepare_square_mission(MissionOptions mission_options);
+	void prepare_square_vtol_mission(MissionOptions mission_options);
+	void prepare_N_shaped_mission(MissionOptions mission_options);
+	void execute_specific_mission_item();
 	void execute_mission();
+	void pause_mission();
+	void set_mission_item();
 	void execute_rtl();
 	void offboard_goto(const Offboard::PositionNEDYaw &target, float acceptance_radius_m = 0.3f,
 			   std::chrono::seconds timeout_duration = std::chrono::seconds(60));

@@ -11,9 +11,10 @@ find_package(MAVSDK REQUIRED)
 if(MAVSDK_FOUND)
     add_executable(mavsdk_tests
         test_main.cpp
-        autopilot_tester.cpp
-        test_multicopter_offboard.cpp
-        test_multicopter_mission.cpp
+        # autopilot_tester.cpp
+        autopilot_tester_raw.cpp
+        # test_multicopter_offboard.cpp
+        # test_multicopter_mission.cpp
         test_vtol_mission.cpp
     )
 
@@ -23,6 +24,7 @@ if(MAVSDK_FOUND)
         MAVSDK::mavsdk_mission
         MAVSDK::mavsdk_offboard
         MAVSDK::mavsdk_telemetry
+        MAVSDK::mavsdk_mission_raw
     )
 
     target_compile_options(mavsdk_tests

@@ -39,7 +39,7 @@
 #include "autopilot_tester.h"
 
 
-TEST_CASE("Takeoff and Land", "[multicopter][vtol]")
+TEST_CASE("Takeoff and Land", "[multicopter]")
 {
 	AutopilotTester tester;
 	tester.connect(connection_url);
@@ -48,11 +48,10 @@ TEST_CASE("Takeoff and Land", "[multicopter][vtol]")
 	tester.takeoff();
 	tester.wait_until_hovering();
 	tester.land();
-	std::chrono::seconds until_disarmed_timeout = std::chrono::seconds(15);
-	tester.wait_until_disarmed(until_disarmed_timeout);
+	tester.wait_until_disarmed();
 }
 
-TEST_CASE("Fly square Multicopter Missions", "[multicopter][vtol]")
+TEST_CASE("Fly square Multicopter Missions", "[multicopter]")
 {
 	AutopilotTester tester;
 	tester.connect(connection_url);

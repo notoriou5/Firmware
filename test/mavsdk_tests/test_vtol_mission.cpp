@@ -36,18 +36,69 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <iostream>
 #include <string>
-#include "autopilot_tester.h"
+#include "autopilot_tester_raw.h"
 
+// TEST_CASE("Takeoff and transition and RTL as FW", "[vtol_old]")
+// {
+// 	AutopilotTester tester;
+// 	tester.connect(connection_url);
+// 	tester.wait_until_ready();
+// 	tester.arm();
+// 	tester.takeoff();
+// 	tester.wait_until_hovering();
+// 	tester.transition_to_fixedwing();
+// 	tester.execute_rtl();
+// 	tester.wait_until_disarmed();
+// }
 
-TEST_CASE("Takeoff and transition and RTL", "[vtol]")
+// TEST_CASE("Fly square VTOL Missions", "[vtol_old]")
+// {
+// 	AutopilotTester tester;
+// 	tester.connect(connection_url);
+// 	tester.wait_until_ready();
+// 	AutopilotTester::MissionOptions mission_options;
+// 	mission_options.leg_length_m = 400.0f;
+// 	mission_options.rtl_at_end = false;
+// 	tester.prepare_square_vtol_mission(mission_options);
+// 	tester.arm();
+// 	tester.takeoff();
+// 	tester.wait_until_hovering();
+// 	tester.transition_to_fixedwing();
+// 	tester.execute_mission();
+// 	//tester.wait_until_hovering();
+// 	tester.transition_to_multicopter();
+// 	tester.execute_rtl();
+// }
+
+// TEST_CASE("Fly N-shaped VTOL Missions", "[vtol_old]")
+// {
+// 	AutopilotTester tester;
+// 	tester.connect(connection_url);
+// 	tester.wait_until_ready();
+// 	AutopilotTester::MissionOptions mission_options;
+// 	mission_options.leg_length_m = 400.0f;
+// 	mission_options.rtl_at_end = false;
+
+// 	tester.prepare_N_shaped_mission(mission_options);
+// 	tester.arm();
+// 	tester.takeoff();
+// 	tester.wait_until_hovering();
+// 	tester.transition_to_fixedwing();
+// 	tester.execute_mission();
+// 	tester.wait_until_hovering();
+// 	tester.transition_to_multicopter();
+// 	tester.land();
+// 	tester.wait_until_disarmed();
+// }
+
+TEST_CASE("Raw Missions", "[vtol]")
 {
 	AutopilotTester tester;
 	tester.connect(connection_url);
-	tester.wait_until_ready();
-	tester.arm();
-	tester.takeoff();
-	tester.wait_until_hovering();
-	tester.transition_to_fixedwing();
-	tester.execute_rtl();
-	tester.wait_until_disarmed();
+
+	tester.prepare_simple_mission_raw();
+	tester.upload_mission();
+
+	tester.execute_mission();
+
 }
