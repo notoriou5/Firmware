@@ -58,7 +58,7 @@ public:
 
 private:
 
-	mavsdk::Mavsdk _mavsdk{};
+	mavsdk::Mavsdk _mavsdk;
 	std::unique_ptr<mavsdk::MissionRaw> _mission_raw{};
 
 	std::vector<MissionRaw::MissionItem> _mission_raw_items;
